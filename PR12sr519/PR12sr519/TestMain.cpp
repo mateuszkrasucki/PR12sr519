@@ -12,14 +12,7 @@ int sc_main (int argc, char* argv[]) {
 
   Edges test("TEST");
     test.clock(clock);
-    sc_start(1600,SC_NS);
-  /*for (i=0;i<100;i++) {
-	sc_start(5,SC_NS);
-	cout<<clock.read();
-    sc_start(5, SC_NS); 
-	cout<<" "<<address.read()<<" "<<data_out.read()<<endl;
-    address.write(i);  
-  }*/
+    sc_start(400,SC_NS);
 
   return 0;
  }
