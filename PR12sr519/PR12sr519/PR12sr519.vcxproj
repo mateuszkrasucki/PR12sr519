@@ -81,12 +81,14 @@
   <ItemGroup>
     <ClCompile Include="ContextModule.cpp" />
     <ClCompile Include="Edges.cpp" />
+    <ClCompile Include="LinearModule.cpp" />
+    <ClCompile Include="MemoryModule.cpp" />
+    <ClCompile Include="SimpleMemoryAccessModule.cpp" />
+    <ClCompile Include="SmartModule.cpp" />
     <ClCompile Include="TestMain.cpp" />
-    <ClCompile Include="SourceMemory.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Const.h" />
-    <ClInclude Include="SourceMemory.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

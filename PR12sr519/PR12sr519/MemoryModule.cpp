@@ -9,10 +9,14 @@
 using namespace cv;
 using namespace std;
 
-SC_MODULE (SourceMemory) {
+SC_MODULE (MemoryModule) {
   sc_in_clk     clock ; 
+
   sc_in    <sc_uint<ADDR_WIDTH> > address ;
-  sc_out   <sc_logic> dataOut;
+  sc_in    <bool>                 writeFlag;
+  sc_in    <bool>                 readFlag;
+  sc_in   <bool> dataIn;
+  sc_out   <bool> dataOut;
 
   bool mem [IMG_SIZE*IMG_SIZE];
 
@@ -34,37 +38,57 @@ SC_MODULE (SourceMemory) {
 			mem[i*20+j] = !bool(img_gray.at<unsigned char>(i,j));
 		}
 	}
-
-	int j = 0;
-	for(int i=0; i<400; i++)	{
-		cout<<mem[i];
-		if(i != 0 && i == 19+j*20)	{
-			cout<<" "<<i<<endl;
-			j++;
-		}
-	}
     return 1;
   }
 
+  void displayMemory()	{
+  	int j = 0;
+	for(int i=0; i<400; i++)	{
+		cout<<mem[i];
+		if(i != 0 && i == 19+j*20)	{
+			cout<<" "<<j+1<<endl;;
+			j++;
+		}
+	}
+  
+  }
+
+  void writeMem () {
+    if (writeFlag.read() && !readFlag.read()) {
+	  int a = address.read();
+      mem[a] = dataIn.read();
+    }
+  }
 
   void readMem () {
+    if (readFlag.read() && !writeFlag.read())  {
 	  int a = address.read();
-      dataOut.write(sc_logic(mem[a]));
-	  //cout<<"MEMORY: "<<a<<" "<<mem[a]<<sc_logic(mem[a])<<dataOut.read()<<endl;
+      dataOut.write(mem[a]);
+    }
   }
 
   void test_printout()	{
 	while(true)	{
 		wait();
-		cout<<"@" << sc_time_stamp()<<" MEMMOD "<<address.read()<<" IN:"<<dataOut.read()<<endl;
+		cout<<"@" << sc_time_stamp()<<" MEMORY WRITEFLAG: "<<writeFlag.read()<<" READFLAG: "<<readFlag.read()<<" ADD: "<<address.read()<<" IN:"<<dataOut.read()<<endl;
 	}
   }
 
-  SC_CTOR(SourceMemory) {
+  SC_CTOR(MemoryModule) {
     SC_METHOD (readMem);
 	  dont_initialize();
       sensitive << clock.pos();
-	SC_CTHREAD(test_printout, clock.pos());
+    SC_METHOD (writeMem);
+	  dont_initialize();
+      sensitive << clock.pos();
+
+	//SC_CTHREAD(test_printout, clock.pos());
+
+	for(int i=0; i<IMG_SIZE*IMG_SIZE; i++)	{
+		mem[i] = false;
+	}
+
+
   }
 
 };

@@ -12,7 +12,9 @@ int sc_main (int argc, char* argv[]) {
 
   Edges test("TEST");
     test.clock(clock);
-    sc_start(400,SC_NS);
+    sc_start(60000,SC_NS);
+
+
 
   return 0;
  }
