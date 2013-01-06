@@ -48,7 +48,6 @@ SC_MODULE(LinearModule)
 		 " CNTCONTEXT: "<<cntContextOut.read()<<" CONTEXTOUTFLAG: "<<contextOutFlag.read()<<endl;*/
 	 if(enabled.read() && writeFlag_vis.read() && !readContextFlag.read() && !readSingleFlag.read() && !finished.read())
 	 {
-		 //cout<<endl<<"NEXT"<<endl;;
 		 if(i.read()+1 == IMG_SIZE && j.read()+1 == IMG_SIZE)	{
 			cout<<endl;
 			finished.write(true);

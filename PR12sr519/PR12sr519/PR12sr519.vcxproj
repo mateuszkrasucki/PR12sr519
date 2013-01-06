@@ -82,6 +82,7 @@
     <ClCompile Include="ContextModule.cpp" />
     <ClCompile Include="Edges.cpp" />
     <ClCompile Include="LinearModule.cpp" />
+    <ClCompile Include="LinearModuleClassic.cpp" />
     <ClCompile Include="MemoryModule.cpp" />
     <ClCompile Include="SimpleMemoryAccessModule.cpp" />
     <ClCompile Include="SmartModule.cpp" />
