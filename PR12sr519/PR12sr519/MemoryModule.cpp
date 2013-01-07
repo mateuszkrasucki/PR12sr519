@@ -33,9 +33,9 @@ SC_MODULE (MemoryModule) {
 	Mat img_gray;
 	cvtColor(img,img_gray,CV_RGB2GRAY);
 
-	for(int i=0; i<20; i++)	{
-		for(int j=0; j<20; j++)	{
-			mem[i*20+j] = !bool(img_gray.at<unsigned char>(i,j));
+	for(int i=0; i<IMG_SIZE; i++)	{
+		for(int j=0; j<IMG_SIZE; j++)	{
+			mem[i*IMG_SIZE+j] = !bool(img_gray.at<unsigned char>(i,j));
 		}
 	}
     return 1;
@@ -43,9 +43,9 @@ SC_MODULE (MemoryModule) {
 
   void displayMemory()	{
   	int j = 0;
-	for(int i=0; i<400; i++)	{
+	for(int i=0; i<IMG_SIZE*IMG_SIZE; i++)	{
 		cout<<mem[i];
-		if(i != 0 && i == 19+j*20)	{
+		if(i != 0 && i == IMG_SIZE-1+j*IMG_SIZE)	{
 			cout<<" "<<j+1<<endl;;
 			j++;
 		}

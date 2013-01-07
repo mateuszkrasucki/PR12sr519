@@ -1,19 +1,19 @@
 #include "systemc.h"
 #include "Const.h"
-/*
+
 SC_MODULE(SmartModule)
 {
    sc_in_clk     clock ;   
 
    //sterowanie SmartModule
    sc_in<bool> enable;
-   sc_out <sc_uint<COORD_WIDTH>>  i_start;
-   sc_out   <sc_uint<COORD_WIDTH>> j_start;
+   sc_in <sc_uint<COORD_WIDTH>>  i_start;
+   sc_in   <sc_uint<COORD_WIDTH>> j_start;
 
    //flaga zakoñczenia
    sc_out<bool> finished;
 
-   //sterowanie MemoryAccessModule
+   //sterowanie ContextModule
    sc_out <sc_uint<COORD_WIDTH>>  i;
    sc_out   <sc_uint<COORD_WIDTH>> j;
    sc_out <bool>                 readContextFlag;
@@ -22,34 +22,151 @@ SC_MODULE(SmartModule)
    sc_in <sc_uint<4>>	cntContextOut;
    sc_in <bool> context[9];
 
-   //sterowanie MemoryAccessModule / VISITED AND CHECKED
+   //sterowanie ContextModule / VISITED
    sc_out <sc_uint<COORD_WIDTH>>  i_vis;
    sc_out   <sc_uint<COORD_WIDTH>> j_vis;
    sc_out <bool>                 readContextFlag_vis;
-   //wyniki MemoryAccessModule / VISITED AND CHECKED
+   sc_out <bool>				writeFlag_vis;
+   sc_out <bool>		dataOut_vis;
+   //wyniki MemoryAccessModule / VISITED
    sc_in <bool> contextOutFlag_vis;
    sc_in <sc_uint<4>>	cntContextOut_vis;
    sc_in <bool> context_vis[9];
 
    //sterowanie MemoryAccessModule / RESULTS
-   sc_out <sc_uint<COORD_WIDTH>>  i_rslt;
-   sc_out   <sc_uint<COORD_WIDTH>> j_rslt;
-   sc_out <bool>                 writeFlag;
-   //wyniki MemoryAccessModule / RESULTS
-   sc_in <bool> flagContextOut_vis;
-   sc_in <sc_uint<4>>	cntContextOut_vis;
-   sc_in <bool> context_vis[9];
+   sc_out <sc_uint<COORD_WIDTH>>  i_res;
+   sc_out   <sc_uint<COORD_WIDTH>> j_res;
+   sc_out <bool>                 writeFlag_res;
+   sc_out <bool>		dataOut_res;
 
    sc_fifo<sc_uint<COORD_WIDTH>> iFifo;
    sc_fifo<sc_uint<COORD_WIDTH>> jFifo;
+   int iTmp;
+   int jTmp;
 
-   int cnt;
    sc_signal<bool> enabled;
+ 
+ void nextStep()	{
+ 			//cout<<"we need next"<<endl;
+			if(iFifo.num_available() !=0 && jFifo.num_available() != 0)	{
+				iTmp = iFifo.read();
+				jTmp = jFifo.read();
+				//cout<<iTmp<<"x"<<jTmp<<endl;
+				i.write(iTmp);
+				j.write(jTmp);
+				i_vis.write(iTmp);
+				j_vis.write(jTmp);
+				i_res.write(iTmp);
+				j_res.write(jTmp);
+
+				writeFlag_vis.write(false);
+				writeFlag_res.write(false);
+
+				readContextFlag.write(true);
+				readContextFlag_vis.write(true);
+			}
+			else	{
+				writeFlag_vis.write(false);
+				writeFlag_res.write(false);
+				finished.write(true);
+			}
+ }
 
  void smartProcess()	{
 	while(true)	{
-	 wait();
-	}
+		 wait();
+		 if(enabled.read() && !writeFlag_vis.read() && !writeFlag_res.read() && !readContextFlag.read() && !readContextFlag_vis.read())	{
+			i.write(i_start.read());
+			j.write(j_start.read());
+			i_vis.write(i_start.read());
+			j_vis.write(j_start.read());
+			i_res.write(i_start.read());
+			j_res.write(j_start.read());
+
+			readContextFlag.write(true);
+			readContextFlag_vis.write(true);
+			writeFlag_vis.write(false);
+			writeFlag_res.write(false);
+			dataOut_vis.write(false);
+			dataOut_res.write(false);
+			//cout<<"@" << sc_time_stamp()<<" entered smart"<<endl;
+			//cout<<i_start.read()<<"x"<<j_start.read()<<endl;
+
+		 } 
+		 else if(enabled.read() && writeFlag_vis.read() && writeFlag_res.read() && !readContextFlag.read() && !readContextFlag_vis.read())	{
+			nextStep();
+		 }
+		 else if(enabled.read() && !writeFlag_vis.read() && !writeFlag_res.read() && readContextFlag.read() 
+			 && readContextFlag_vis.read() && contextOutFlag.read() && contextOutFlag_vis.read())	{
+
+			 readContextFlag.write(false);
+			 readContextFlag_vis.write(false);
+			 //cout<<"@" << sc_time_stamp()<<" got context"<<endl;
+			 //cout<<i.read()<<i_res.read()<<i_vis.read()<<"x"<<j.read()<<j_res.read()<<j_vis.read()<<endl;
+
+			 if(!context_vis[4])	{	
+					 if(!(context[0].read() & context[1].read() & context[2].read() & context[3].read() & context[5].read() 
+						 & context[6].read() & context [7].read() & context [8].read()))	{
+							/*for(int i=0; i<9; i++)	{
+								cout<<"@" << sc_time_stamp()<<"context "<<i<<" "<<context[i].read()<<" visited? "<<context_vis[i].read()<<endl;
+							}*/
+							if(context[0].read() & !context_vis[0].read())	{
+								//cout<<"ADD TO FIFO: "<<i.read()-1<<"x"<<j.read()-1<<endl;
+								iFifo.write(i.read()-1);
+								jFifo.write(j.read()-1);
+							}
+							if(context[1].read() & !context_vis[1].read())	{
+								//cout<<"ADD TO FIFO: "<<i.read()-1<<"x"<<j.read()<<endl;
+								iFifo.write(i.read()-1);
+								jFifo.write(j.read());
+							}
+							if(context[2].read() & !context_vis[2].read())	{
+								//cout<<"ADD TO FIFO: "<<i.read()-1<<"x"<<j.read()+1<<endl;
+								iFifo.write(i.read()-1);
+								jFifo.write(j.read()+1);
+							}
+							if(context[3].read() & !context_vis[3].read())	{
+								//cout<<"ADD TO FIFO: "<<i.read()<<"x"<<j.read()-1<<endl;
+								iFifo.write(i.read());
+								jFifo.write(j.read()-1);
+							}
+							if(context[5].read() & !context_vis[5].read())	{
+								//cout<<"ADD TO FIFO: "<<i.read()<<"x"<<j.read()+1<<endl;
+								iFifo.write(i.read());
+								jFifo.write(j.read()+1);
+							}
+							if(context[6].read() & !context_vis[6].read())	{
+								//cout<<"ADD TO FIFO: "<<i.read()+1<<"x"<<j.read()-1<<endl;
+								iFifo.write(i.read()+1);
+								jFifo.write(j.read()-1);
+							}
+							if(context[7].read() & !context_vis[7].read())	{
+								//cout<<"ADD TO FIFO: "<<i.read()+1<<"x"<<j.read()<<endl;
+								iFifo.write(i.read()+1);
+								jFifo.write(j.read());
+							}
+							if(context[8].read() & !context_vis[8].read())	{
+								//cout<<"ADD TO FIFO: "<<i.read()+1<<"x"<<j.read()+1<<endl;
+								//cout<<iFifo.num_available()<<" "<<iFifo.num_free()<<endl;
+								iFifo.write(i.read()+1);
+								jFifo.write(j.read()+1);
+							}
+							dataOut_res.write(true); // WYNIK cout<<1
+							writeFlag_res.write(true);
+					 }
+					 else	{
+						dataOut_res.write(false);
+						//cout<<0;
+					 }
+				dataOut_vis.write(true);
+				writeFlag_res.write(true);
+				writeFlag_vis.write(true);
+			 }
+			 else	{
+				nextStep();
+			 }
+		 }
+	 }
  }
 
  
@@ -58,32 +175,23 @@ SC_MODULE(SmartModule)
 			enabled.write(false);
 		}
 		else	{
-			iFifo.write(i_start.read());
-			jFifo.write(j_start.read());
 			enabled.write(true);
 		}
   }
 
 
 				 
-  void testPrintout()	{
-	while(true)	{
-		wait();
-		cout<<"@" << sc_time_stamp()<<" "<<valSingle.read()<<endl;
-	}
-  }
 
 
-  SC_CTOR(SmartModule)
+  SC_CTOR(SmartModule) : iFifo(50), jFifo(50)
   {
-	cnt = 0;
+
 	SC_CTHREAD(smartProcess, clock.pos());
 
 	SC_METHOD(startStop);
 		dont_initialize();
 		sensitive<<enable.pos()<<finished.pos();
 
-	sc_fifo<sc_uint<COORD_WIDTH>[2]> fifo (8);
 	//SC_CTHREAD(test_printout, clock.pos());
   }
-};*/
+};
