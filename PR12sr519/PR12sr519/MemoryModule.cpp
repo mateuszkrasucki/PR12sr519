@@ -53,6 +53,10 @@ SC_MODULE (MemoryModule) {
   
   }
 
+  int getMem(int i)	{
+	return mem[i];
+  }
+
   void writeMem () {
     if (writeFlag.read() && !readFlag.read()) {
 	  int a = address.read();

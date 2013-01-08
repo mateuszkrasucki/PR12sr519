@@ -4,6 +4,7 @@
 #include "ContextModule.cpp"
 #include "LinearModule.cpp"
 #include "SmartModule.cpp"
+#include "ImageGenerator.cpp"
 
 
 SC_MODULE(Edges)
@@ -143,8 +144,18 @@ SC_MODULE(Edges)
 	  }
   }
 
+  void createImage() {
+	cout << "KONIEC PRZETWARZANIA. " << endl << "...ZAPISYWANIE OBRAZU..." << endl;
+	
+	int tablica[IMG_SIZE*IMG_SIZE];
+	for(int i=0; i<IMG_SIZE*IMG_SIZE; i++)	{
+		tablica[i]=resultsMemory.getMem(i);
+	}
+	ImageGenerator *ig = new ImageGenerator();
+	ig->generate(tablica);
 
-
+	cout << "OBRAZ ZAPISANY..." << endl;
+  }
 
   SC_CTOR(Edges) : smartModule("SmartModule"), linearModule("LinearModule"), contextModule("ContextModule"), visitedModule("VisitedModule"), resultsModule("ResultsModule"), sourceMemory("SourceMemory"), visitedMemory("VisitedMemory"), resultsMemory("ResultsMemory")
   {
@@ -308,8 +319,8 @@ SC_MODULE(Edges)
   //sourceMemory.loadImage("../PR12sr519/TestImages/cross.png");
   //sourceMemory.loadImage("../PR12sr519/TestImages/slash.png");
   sourceMemory.loadImage("../PR12sr519/TestImages/difficult.png");
+  
   sourceMemory.displayMemory();
-
   SC_CTHREAD(finish, clock.pos());
 
  SC_METHOD(display);

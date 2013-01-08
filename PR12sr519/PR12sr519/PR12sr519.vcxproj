@@ -81,6 +81,7 @@
   <ItemGroup>
     <ClCompile Include="ContextModule.cpp" />
     <ClCompile Include="Edges.cpp" />
+    <ClCompile Include="ImageGenerator.cpp" />
     <ClCompile Include="LinearModule.cpp" />
     <ClCompile Include="LinearModuleClassic.cpp" />
     <ClCompile Include="MemoryModule.cpp" />
