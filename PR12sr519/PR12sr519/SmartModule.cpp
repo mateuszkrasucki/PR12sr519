@@ -13,27 +13,27 @@ SC_MODULE(SmartModule)
    //flaga zakoñczenia
    sc_out<bool> finished;
 
-   //sterowanie ContextModule
+   //sterowanie AccessPictureModule
    sc_out <sc_uint<COORD_WIDTH>>  i;
    sc_out   <sc_uint<COORD_WIDTH>> j;
    sc_out <bool>                 readContextFlag;
-   //wyniki MemoryAccessModule
+
+   //wyniki AccessPictureModule
    sc_in <bool> contextOutFlag;
-   sc_in <sc_uint<4>>	cntContextOut;
    sc_in <bool> context[9];
 
-   //sterowanie ContextModule / VISITED
+   //sterowanie VisitedModule
    sc_out <sc_uint<COORD_WIDTH>>  i_vis;
    sc_out   <sc_uint<COORD_WIDTH>> j_vis;
    sc_out <bool>                 readContextFlag_vis;
    sc_out <bool>				writeFlag_vis;
    sc_out <bool>		dataOut_vis;
-   //wyniki MemoryAccessModule / VISITED
+
+   //wyniki VisitedModule
    sc_in <bool> contextOutFlag_vis;
-   sc_in <sc_uint<4>>	cntContextOut_vis;
    sc_in <bool> context_vis[9];
 
-   //sterowanie MemoryAccessModule / RESULTS
+   //sterowanie ResultsModule
    sc_out <sc_uint<COORD_WIDTH>>  i_res;
    sc_out   <sc_uint<COORD_WIDTH>> j_res;
    sc_out <bool>                 writeFlag_res;
@@ -41,17 +41,16 @@ SC_MODULE(SmartModule)
 
    sc_fifo<sc_uint<COORD_WIDTH>> iFifo;
    sc_fifo<sc_uint<COORD_WIDTH>> jFifo;
+
    int iTmp;
    int jTmp;
 
    sc_signal<bool> enabled;
  
  void nextStep()	{
- 			//cout<<"we need next"<<endl;
 			if(iFifo.num_available() !=0 && jFifo.num_available() != 0)	{
 				iTmp = iFifo.read();
 				jTmp = jFifo.read();
-				//cout<<iTmp<<"x"<<jTmp<<endl;
 				i.write(iTmp);
 				j.write(jTmp);
 				i_vis.write(iTmp);
@@ -66,6 +65,8 @@ SC_MODULE(SmartModule)
 				readContextFlag_vis.write(true);
 			}
 			else	{
+				readContextFlag_vis.write(false);
+				readContextFlag.write(false);
 				writeFlag_vis.write(false);
 				writeFlag_res.write(false);
 				finished.write(true);
@@ -75,6 +76,7 @@ SC_MODULE(SmartModule)
  void smartProcess()	{
 	while(true)	{
 		 wait();
+		 finished.write(false);
 		 if(enabled.read() && !writeFlag_vis.read() && !writeFlag_res.read() && !readContextFlag.read() && !readContextFlag_vis.read())	{
 			i.write(i_start.read());
 			j.write(j_start.read());
@@ -89,9 +91,6 @@ SC_MODULE(SmartModule)
 			writeFlag_res.write(false);
 			dataOut_vis.write(false);
 			dataOut_res.write(false);
-			//cout<<"@" << sc_time_stamp()<<" entered smart"<<endl;
-			//cout<<i_start.read()<<"x"<<j_start.read()<<endl;
-
 		 } 
 		 else if(enabled.read() && writeFlag_vis.read() && writeFlag_res.read() && !readContextFlag.read() && !readContextFlag_vis.read())	{
 			nextStep();
@@ -99,12 +98,15 @@ SC_MODULE(SmartModule)
 		 else if(enabled.read() && !writeFlag_vis.read() && !writeFlag_res.read() && readContextFlag.read() 
 			 && readContextFlag_vis.read() && contextOutFlag.read() && contextOutFlag_vis.read())	{
 
+			 cout<<iFifo.num_available()<<endl;
+
 			 readContextFlag.write(false);
 			 readContextFlag_vis.write(false);
-			 //cout<<"@" << sc_time_stamp()<<" got context"<<endl;
-			 //cout<<i.read()<<i_res.read()<<i_vis.read()<<"x"<<j.read()<<j_res.read()<<j_vis.read()<<endl;
+			 /*cout<<"@" << sc_time_stamp()<<" got context"<<" ";
+			 cout<<i.read()<<i_res.read()<<i_vis.read()<<"x"<<j.read()<<j_res.read()<<j_vis.read()<<endl;*/
 
 			 if(!context_vis[4])	{	
+				 //cout<<i.read()<<i_vis.read()<<"x"<<j.read()<<j_vis.read()<<endl;
 					 if(!(context[0].read() & context[1].read() & context[2].read() & context[3].read() & context[5].read() 
 						 & context[6].read() & context [7].read() & context [8].read()))	{
 							/*for(int i=0; i<9; i++)	{
@@ -151,12 +153,11 @@ SC_MODULE(SmartModule)
 								iFifo.write(i.read()+1);
 								jFifo.write(j.read()+1);
 							}
-							dataOut_res.write(true); // WYNIK cout<<1
+							dataOut_res.write(true); 
 							writeFlag_res.write(true);
 					 }
 					 else	{
 						dataOut_res.write(false);
-						//cout<<0;
 					 }
 				dataOut_vis.write(true);
 				writeFlag_res.write(true);
@@ -183,7 +184,7 @@ SC_MODULE(SmartModule)
 				 
 
 
-  SC_CTOR(SmartModule) : iFifo(50), jFifo(50)
+  SC_CTOR(SmartModule) : iFifo(100), jFifo(100)
   {
 
 	SC_CTHREAD(smartProcess, clock.pos());

@@ -18,7 +18,7 @@ SC_MODULE (MemoryModule) {
   sc_in   <bool> dataIn;
   sc_out   <bool> dataOut;
 
-  bool mem [IMG_SIZE*IMG_SIZE];
+  bool* mem;
 
   int loadImage(string filepath)	{
 	
@@ -27,25 +27,41 @@ SC_MODULE (MemoryModule) {
 
     if (img.empty()) 
     {
-        cout << "Cannot load image!" << endl;
+        cout << "B³¹d!" << endl;
         return -1;
     }
 	Mat img_gray;
 	cvtColor(img,img_gray,CV_RGB2GRAY);
+	IMG_SIZE_i = img.rows;
+	IMG_SIZE_j = img.cols;
 
-	for(int i=0; i<IMG_SIZE; i++)	{
-		for(int j=0; j<IMG_SIZE; j++)	{
-			mem[i*IMG_SIZE+j] = !bool(img_gray.at<unsigned char>(i,j));
+	mem = new bool[IMG_SIZE_i*IMG_SIZE_j];
+	
+	for(int i=0; i<IMG_SIZE_i; i++)	{
+		for(int j=0; j<IMG_SIZE_j; j++)	{
+			mem[i*IMG_SIZE_j+j] = !bool(img_gray.at<unsigned char>(i,j));
 		}
 	}
+
     return 1;
+  }
+
+  void initMemory()	{
+	mem = new bool[IMG_SIZE_i*IMG_SIZE_j];
+	for(int i=0; i<IMG_SIZE_i*IMG_SIZE_j; i++)	{
+		mem[i] = false;
+	}
+  }
+
+  void destroyMemory()	{
+	 delete [] mem;
   }
 
   void displayMemory()	{
   	int j = 0;
-	for(int i=0; i<IMG_SIZE*IMG_SIZE; i++)	{
+	for(int i=0; i<IMG_SIZE_i*IMG_SIZE_j; i++)	{
 		cout<<mem[i];
-		if(i != 0 && i == IMG_SIZE-1+j*IMG_SIZE)	{
+		if(i != 0 && i == IMG_SIZE_j-1+j*IMG_SIZE_j)	{
 			cout<<" "<<j+1<<endl;;
 			j++;
 		}
@@ -71,13 +87,6 @@ SC_MODULE (MemoryModule) {
     }
   }
 
-  void test_printout()	{
-	while(true)	{
-		wait();
-		cout<<"@" << sc_time_stamp()<<" MEMORY WRITEFLAG: "<<writeFlag.read()<<" READFLAG: "<<readFlag.read()<<" ADD: "<<address.read()<<" IN:"<<dataOut.read()<<endl;
-	}
-  }
-
   SC_CTOR(MemoryModule) {
     SC_METHOD (readMem);
 	  dont_initialize();
@@ -85,13 +94,6 @@ SC_MODULE (MemoryModule) {
     SC_METHOD (writeMem);
 	  dont_initialize();
       sensitive << clock.pos();
-
-	//SC_CTHREAD(test_printout, clock.pos());
-
-	for(int i=0; i<IMG_SIZE*IMG_SIZE; i++)	{
-		mem[i] = false;
-	}
-
 
   }
 

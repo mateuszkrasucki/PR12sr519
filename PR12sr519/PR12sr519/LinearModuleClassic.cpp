@@ -48,12 +48,12 @@ SC_MODULE(LinearModule)
 		 " CNTCONTEXT: "<<cntContextOut.read()<<" CONTEXTOUTFLAG: "<<contextOutFlag.read()<<endl;*/
 	 if(enabled.read() && writeFlag_vis.read() && !readContextFlag.read() && !readSingleFlag.read() && !finished.read())
 	 {
-		 if(i.read()+1 == IMG_SIZE && j.read()+1 == IMG_SIZE)	{
+		 if(i.read()+1 == IMG_SIZE_i && j.read()+1 == IMG_SIZE_j)	{
 			cout<<endl;
 			finished.write(true);
 			cout<<"@" << sc_time_stamp()<<endl;
 		}
-		else if(j.read()+1 == IMG_SIZE)	{
+		else if(j.read()+1 == IMG_SIZE_j)	{
 				i_vis.write(i.read()+1);
 				i.write(i.read()+1);
 				j_vis.write(0);

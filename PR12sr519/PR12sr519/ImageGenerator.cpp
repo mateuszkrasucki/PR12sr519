@@ -14,12 +14,12 @@ public:
 		tablica = tab;
 
 		/*creating image*/
-		IplImage *img = cvCreateImage(cvSize(IMG_SIZE, IMG_SIZE), IPL_DEPTH_8U, 1);
+		IplImage *img = cvCreateImage(cvSize(IMG_SIZE_j, IMG_SIZE_i), IPL_DEPTH_8U, 1);
 		int i,j,k,l;
 		uchar *data;
 		data = (uchar *) img->imageData;
 
-		for (i = 0; i < (IMG_SIZE*IMG_SIZE); i++) {
+		for (i = 0; i < (IMG_SIZE_i*IMG_SIZE_j); i++) {
 				if (tab[i]==1) {
 					data[i] = 0;
 				} else {

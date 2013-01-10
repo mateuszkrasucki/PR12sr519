@@ -30,16 +30,19 @@
     <ClCompile Include="MemoryModule.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="ContextModule.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="SimpleMemoryAccessModule.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="LinearModuleClassic.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="ImageGenerator.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ResultsModule.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="VisitedModule.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="AccessPictureModule.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

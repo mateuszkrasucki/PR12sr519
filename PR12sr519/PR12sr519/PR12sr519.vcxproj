@@ -79,13 +79,14 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="ContextModule.cpp" />
+    <ClCompile Include="AccessPictureModule.cpp" />
+    <ClCompile Include="VisitedModule.cpp" />
     <ClCompile Include="Edges.cpp" />
     <ClCompile Include="ImageGenerator.cpp" />
     <ClCompile Include="LinearModule.cpp" />
     <ClCompile Include="LinearModuleClassic.cpp" />
     <ClCompile Include="MemoryModule.cpp" />
-    <ClCompile Include="SimpleMemoryAccessModule.cpp" />
+    <ClCompile Include="ResultsModule.cpp" />
     <ClCompile Include="SmartModule.cpp" />
     <ClCompile Include="TestMain.cpp" />
   </ItemGroup>

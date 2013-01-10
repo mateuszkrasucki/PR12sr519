@@ -2,8 +2,11 @@
 #define CONST_H
  
 #define DATA_WIDTH	1
-#define COORD_WIDTH		5
-#define ADDR_WIDTH        9
-#define IMG_SIZE	20
+#define COORD_WIDTH		16 // 5
+#define ADDR_WIDTH      24  //9
+//#define IMG_SIZE	20 // 20
+
+static int IMG_SIZE_i;
+static int IMG_SIZE_j;
  
 #endif

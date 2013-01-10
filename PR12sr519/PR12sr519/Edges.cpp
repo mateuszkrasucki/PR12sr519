@@ -1,7 +1,9 @@
 #include "systemc.h"
-#include "SimpleMemoryAccessModule.cpp"
+#include "Const.h"
 #include "MemoryModule.cpp"
-#include "ContextModule.cpp"
+#include "AccessPictureModule.cpp"
+#include "VisitedModule.cpp"
+#include "ResultsModule.cpp"
 #include "LinearModule.cpp"
 #include "SmartModule.cpp"
 #include "ImageGenerator.cpp"
@@ -11,9 +13,9 @@ SC_MODULE(Edges)
 {
 	SmartModule smartModule;
 	LinearModule linearModule;
-	ContextModule contextModule;
-	ContextModule visitedModule;
-	MemoryAccessModule resultsModule;
+	AccessPictureModule contextModule;
+	VisitedModule visitedModule;
+	ResultsModule resultsModule;
 	MemoryModule sourceMemory;
 	MemoryModule visitedMemory;
 	MemoryModule resultsMemory;
@@ -41,64 +43,44 @@ SC_MODULE(Edges)
   sc_signal   <bool> dataIn_resultsMem;
   sc_signal   <bool> dataOut_resultsMem;
 
-  //komunikacja z contextModule
+  //komunikacja z MemoryAccessModule
   sc_signal    <sc_uint<COORD_WIDTH>>  i_context_1;
   sc_signal   <sc_uint<COORD_WIDTH>> j_context_1;
   sc_signal <bool> readSingleFlag_context_1;
-  sc_signal <bool> readContextFlag_context_1;
-  sc_signal    <bool>				  writeFlag_context_1;
-  sc_signal	   <bool>				  dataIn_context_1;
 
   sc_signal    <sc_uint<COORD_WIDTH>>  i_context_2;
   sc_signal   <sc_uint<COORD_WIDTH>> j_context_2;
-  sc_signal <bool> readSingleFlag_context_2;
   sc_signal <bool> readContextFlag_context_2;
-  sc_signal    <bool>				  writeFlag_context_2;
-  sc_signal	   <bool>				  dataIn_context_2;
 
   sc_signal<bool> singleOutFlag_context;
   sc_signal <bool> dataOut_context;
-  sc_signal <sc_uint<4>>	cntContextOut_context;
   sc_signal<bool> contextOutFlag_context;
   sc_signal <bool> context[9];
-
 
   //komunikacja z visitedModule
   sc_signal    <sc_uint<COORD_WIDTH>>  i_visitedMemA_1;
   sc_signal   <sc_uint<COORD_WIDTH>> j_visitedMemA_1;
   sc_signal <bool> readSingleFlag_visitedMemA_1;
-  sc_signal <bool> readContextFlag_visitedMemA_1;
   sc_signal    <bool>				  writeFlag_visitedMemA_1;
   sc_signal	   <bool>				  dataIn_visitedMemA_1;
 
   sc_signal    <sc_uint<COORD_WIDTH>>  i_visitedMemA_2;
   sc_signal   <sc_uint<COORD_WIDTH>> j_visitedMemA_2;
-  sc_signal <bool> readSingleFlag_visitedMemA_2;
   sc_signal <bool> readContextFlag_visitedMemA_2;
   sc_signal    <bool>				  writeFlag_visitedMemA_2;
   sc_signal	   <bool>				  dataIn_visitedMemA_2;
 
   sc_signal<bool> singleOutFlag_visitedMemA;
   sc_signal <bool> dataOut_visitedMemA;
-  sc_signal <sc_uint<4>>	cntContextOut_visitedMemA;
   sc_signal<bool> contextOutFlag_visitedMemA;
   sc_signal <bool> context_visitedMemA[9];
 
   //komunikacja z resultsModule
-  sc_signal    <sc_uint<COORD_WIDTH>>  i_resultsMemA_1;
-  sc_signal   <sc_uint<COORD_WIDTH>> j_resultsMemA_1;
-  sc_signal <bool> readSingleFlag_resultsMemA_1;
-  sc_signal    <bool>				  writeFlag_resultsMemA_1;
-  sc_signal	   <bool>				  dataIn_resultsMemA_1;
+  sc_signal    <sc_uint<COORD_WIDTH>>  i_resultsMemA;
+  sc_signal   <sc_uint<COORD_WIDTH>> j_resultsMemA;
+  sc_signal    <bool>				  writeFlag_resultsMemA;
+  sc_signal	   <bool>				  dataIn_resultsMemA;
 
-  sc_signal    <sc_uint<COORD_WIDTH>>  i_resultsMemA_2;
-  sc_signal   <sc_uint<COORD_WIDTH>> j_resultsMemA_2;
-  sc_signal <bool> readSingleFlag_resultsMemA_2;
-  sc_signal    <bool>				  writeFlag_resultsMemA_2;
-  sc_signal	   <bool>				  dataIn_resultsMemA_2;
-
-  sc_signal<bool> singleOutFlag_resultsMemA;
-  sc_signal <bool> dataOut_resultsMemA;
 
   //komunikacja z SmartModule
   //sterowanie SmartModule
@@ -127,19 +109,19 @@ SC_MODULE(Edges)
    }
 
   void display()	{
-	    cout<<"VISITED"<<endl;
+	    /*cout<<"VISITED"<<endl;
 		visitedMemory.displayMemory();
 		cout<<endl<<"RESULTS"<<endl;
-		resultsMemory.displayMemory();
+		resultsMemory.displayMemory();*/
   }
 
   void displaying()	{
 	  while(true)	{
-		wait(800);
+		wait(1600);
 		if(displayFlag.read()==false)	{
-			cout<<"STAN @" << sc_time_stamp()<<endl;
-			display();
-			cout<<endl;
+			//cout<<"STAN @" << sc_time_stamp()<<endl;
+			//display();
+			//cout<<endl;
 		}
 	  }
   }
@@ -147,14 +129,21 @@ SC_MODULE(Edges)
   void createImage() {
 	cout << "KONIEC PRZETWARZANIA. " << endl << "...ZAPISYWANIE OBRAZU..." << endl;
 	
-	int tablica[IMG_SIZE*IMG_SIZE];
-	for(int i=0; i<IMG_SIZE*IMG_SIZE; i++)	{
+	int* tablica;
+	tablica = new int[IMG_SIZE_i*IMG_SIZE_j];
+	for(int i=0; i<IMG_SIZE_i*IMG_SIZE_j; i++)	{
 		tablica[i]=resultsMemory.getMem(i);
 	}
 	ImageGenerator *ig = new ImageGenerator();
 	ig->generate(tablica);
 
 	cout << "OBRAZ ZAPISANY..." << endl;
+  }
+
+  void destroyMemory()	{
+	  sourceMemory.destroyMemory();
+	  visitedMemory.destroyMemory();
+	  resultsMemory.destroyMemory();
   }
 
   SC_CTOR(Edges) : smartModule("SmartModule"), linearModule("LinearModule"), contextModule("ContextModule"), visitedModule("VisitedModule"), resultsModule("ResultsModule"), sourceMemory("SourceMemory"), visitedMemory("VisitedMemory"), resultsMemory("ResultsMemory")
@@ -207,20 +196,13 @@ SC_MODULE(Edges)
   contextModule.i_1(i_context_1);
   contextModule.j_1(j_context_1);
   contextModule.readSingleFlag_1(readSingleFlag_context_1);
-  contextModule.readContextFlag_1(readContextFlag_context_1); //FALSE
-  contextModule.writeFlag_1(writeFlag_context_1); //FALSE
-  contextModule.dataIn_1(dataIn_context_1);
 
   contextModule.i_2(i_context_2);
   contextModule.j_2(j_context_2);
-  contextModule.readSingleFlag_2(readSingleFlag_context_2); //FALSE
   contextModule.readContextFlag_2(readContextFlag_context_2);
-  contextModule.writeFlag_2(writeFlag_context_2); //FALSE
-  contextModule.dataIn_2(dataIn_context_2); 
 
   contextModule.singleOutFlag(singleOutFlag_context);
   contextModule.dataOut(dataOut_context);
-  contextModule.cntContextOut(cntContextOut_context);
   contextModule.contextOutFlag(contextOutFlag_context);
 
   linearModule.i(i_context_1);
@@ -232,26 +214,22 @@ SC_MODULE(Edges)
   smartModule.i(i_context_2);
   smartModule.j(j_context_2);
   smartModule.readContextFlag(readContextFlag_context_2);
-  smartModule.cntContextOut(cntContextOut_context);
   smartModule.contextOutFlag(contextOutFlag_context);
 
   visitedModule.i_1(i_visitedMemA_1);
   visitedModule.j_1(j_visitedMemA_1);
   visitedModule.readSingleFlag_1(readSingleFlag_visitedMemA_1);
-  visitedModule.readContextFlag_1(readContextFlag_visitedMemA_1);//FALSE
   visitedModule.writeFlag_1(writeFlag_visitedMemA_1);
   visitedModule.dataIn_1(dataIn_visitedMemA_1);
 
   visitedModule.i_2(i_visitedMemA_2);
   visitedModule.j_2(j_visitedMemA_2);
-  visitedModule.readSingleFlag_2(readSingleFlag_visitedMemA_2); //FALSE
   visitedModule.readContextFlag_2(readContextFlag_visitedMemA_2);
   visitedModule.writeFlag_2(writeFlag_visitedMemA_2);
   visitedModule.dataIn_2(dataIn_visitedMemA_2);
 
   visitedModule.singleOutFlag(singleOutFlag_visitedMemA);
   visitedModule.dataOut(dataOut_visitedMemA);
-  visitedModule.cntContextOut(cntContextOut_visitedMemA);
   visitedModule.contextOutFlag(contextOutFlag_visitedMemA);
 
   linearModule.i_vis(i_visitedMemA_1);
@@ -268,7 +246,6 @@ SC_MODULE(Edges)
   smartModule.writeFlag_vis(writeFlag_visitedMemA_2);
   smartModule.dataOut_vis(dataIn_visitedMemA_2);
 
-  smartModule.cntContextOut_vis(cntContextOut_visitedMemA);
   smartModule.contextOutFlag_vis(contextOutFlag_visitedMemA);
 
 	for(int i=0; i<9; i++)	{
@@ -278,30 +255,15 @@ SC_MODULE(Edges)
 		smartModule.context_vis[i](context_visitedMemA[i]);
 	}
 
-  resultsModule.i_1(i_resultsMemA_1);
-  resultsModule.j_1(j_resultsMemA_1);
-  resultsModule.readSingleFlag_1(readSingleFlag_resultsMemA_1); //FALSE
-  resultsModule.writeFlag_1(writeFlag_resultsMemA_1);
-  resultsModule.dataIn_1(dataIn_resultsMemA_1);
+  resultsModule.i(i_resultsMemA);
+  resultsModule.j(j_resultsMemA);
+  resultsModule.writeFlag(writeFlag_resultsMemA);
+  resultsModule.dataIn(dataIn_resultsMemA);
 
-  resultsModule.i_2(i_resultsMemA_2);
-  resultsModule.j_2(j_resultsMemA_2);
-  resultsModule.readSingleFlag_2(readSingleFlag_resultsMemA_2); //FALSE
-  resultsModule.writeFlag_2(writeFlag_resultsMemA_2);
-  resultsModule.dataIn_2(dataIn_resultsMemA_2);
-
-  resultsModule.singleOutFlag(singleOutFlag_resultsMemA); 
-  resultsModule.dataOut(dataOut_resultsMemA);
-
-  linearModule.i_res(i_resultsMemA_1);
-  linearModule.j_res(j_resultsMemA_1);
-  linearModule.writeFlag_res(writeFlag_resultsMemA_1);
-  linearModule.dataOut_res(dataIn_resultsMemA_1);
-
-  smartModule.i_res(i_resultsMemA_2);
-  smartModule.j_res(j_resultsMemA_2);
-  smartModule.writeFlag_res(writeFlag_resultsMemA_2);
-  smartModule.dataOut_res(dataIn_resultsMemA_2);
+  smartModule.i_res(i_resultsMemA);
+  smartModule.j_res(j_resultsMemA);
+  smartModule.writeFlag_res(writeFlag_resultsMemA);
+  smartModule.dataOut_res(dataIn_resultsMemA);
 
   smartModule.enable(enableSmart);
   smartModule.i_start(i_smart);
@@ -318,9 +280,17 @@ SC_MODULE(Edges)
 
   //sourceMemory.loadImage("../PR12sr519/TestImages/cross.png");
   //sourceMemory.loadImage("../PR12sr519/TestImages/slash.png");
-  sourceMemory.loadImage("../PR12sr519/TestImages/difficult.png");
-  
-  sourceMemory.displayMemory();
+  //sourceMemory.loadImage("../PR12sr519/TestImages/difficult.png");
+  //sourceMemory.loadImage("../PR12sr519/TestImages/nested.png");
+  //sourceMemory.loadImage("../PR12sr519/TestImages/kratownica.png");
+  //sourceMemory.loadImage("../PR12sr519/TestImages/punkty.png");
+  //sourceMemory.loadImage("../PR12sr519/TestImages/almostfull.png");
+  sourceMemory.loadImage("../PR12sr519/TestImages/100.png");
+  //sourceMemory.loadImage("../PR12sr519/TestImages/2028.png");
+  resultsMemory.initMemory();
+  visitedMemory.initMemory();
+
+
   SC_CTHREAD(finish, clock.pos());
 
  SC_METHOD(display);
@@ -328,17 +298,6 @@ SC_MODULE(Edges)
 	sensitive << displayFlag;
 
  SC_CTHREAD(displaying,clock.pos());
-
-	readContextFlag_context_1.write(false);
-	readSingleFlag_context_2.write(false);
-	writeFlag_context_1.write(false);
-	writeFlag_context_2.write(false);
-
-	readContextFlag_visitedMemA_1.write(false);
-	readSingleFlag_visitedMemA_2.write(false);
-
-    readSingleFlag_resultsMemA_1.write(false);
-	readSingleFlag_resultsMemA_2.write(false);
 
     displayFlag.write(false);
     enable.write(true);
