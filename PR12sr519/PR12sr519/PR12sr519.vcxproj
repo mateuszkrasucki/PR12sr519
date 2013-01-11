@@ -80,6 +80,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="AccessPictureModule.cpp" />
+    <ClCompile Include="EdgesClassic.cpp" />
     <ClCompile Include="VisitedModule.cpp" />
     <ClCompile Include="Edges.cpp" />
     <ClCompile Include="ImageGenerator.cpp" />

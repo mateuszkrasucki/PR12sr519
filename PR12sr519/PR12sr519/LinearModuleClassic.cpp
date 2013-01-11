@@ -1,7 +1,7 @@
 #include "systemc.h"
 #include "Const.h"
 
-SC_MODULE(LinearModule)
+SC_MODULE(LinearModuleClassic)
 {
    sc_in_clk     clock ;   
 
@@ -11,106 +11,91 @@ SC_MODULE(LinearModule)
    //flaga zakoñczenia
    sc_out<bool> finished;
 
-   //sterowanie ContextModule 
-   sc_out <sc_uint<COORD_WIDTH>>  i;
-   sc_out   <sc_uint<COORD_WIDTH>> j;
+   //sterowanie AccessPictureModule
+   sc_out <sc_uint<COORD_WIDTH>>  i_1;
+   sc_out   <sc_uint<COORD_WIDTH>> j_1;
+   sc_out <sc_uint<COORD_WIDTH>>  i_2;
+   sc_out   <sc_uint<COORD_WIDTH>> j_2;
    sc_out    <bool>                 readSingleFlag;
    sc_out <bool>                 readContextFlag;
+   sc_out <bool> allowContextFlag;
 
-   //wyniki ContextModule
+   //wyniki AccessPictureModule
    sc_in <bool> singleOutFlag;
-   sc_in <bool> valSingle;
+   sc_in <bool> single;
    sc_in<bool> contextOutFlag;
-   sc_in<sc_uint<4>>	cntContextOut;
-   sc_in<bool> context[9];
+   sc_in<bool> context[8];
 
+   //sterowanie ResultsModule
+   sc_out <sc_uint<COORD_WIDTH>>  i_res;
+   sc_out   <sc_uint<COORD_WIDTH>> j_res;
+   sc_out <bool>                 writeFlag_res;
+   sc_out <bool>		dataOut_res;
 
-   //sterowanie MemoryAccessModule / VISITED
-   sc_out <sc_uint<COORD_WIDTH>>  i_vis;
-   sc_out   <sc_uint<COORD_WIDTH>> j_vis;
-   sc_out <bool>                 readSingleFlag_vis;
-   sc_out <bool>				 writeFlag_vis;
-   sc_out <bool>		dataOut_vis;
-
-   //wyniki MemoryAccessModule / VISITED AND CHECKED
-   sc_in <bool> singleOutFlag_vis;
-   sc_in <bool> val_vis;
   
 	sc_signal <bool> enabled;
-	int cnt;
 
  void linearProcess()	{
 	while(true)	{
 	 wait();
-	 /*cout<<i.read()<<"x"<<j.read()<<endl<<"ENABLED: "<<enabled.read() << " WRITEFLAGVIS: "<<writeFlag_vis.read() << " READCONTEXTFLAG: "<<
-		 readContextFlag.read()<<endl<<" READSINGLEFLAG: "<<readSingleFlag.read() <<" READVISFLAG: "<< readSingleFlag_vis.read()<<
-		 " FINISHED: "<<finished.read() <<endl<< " SINGLEOUT: "<<singleOutFlag.read() << "VISOUTFLAG: "<< singleOutFlag_vis.read()<<endl<<
-		 " CNTCONTEXT: "<<cntContextOut.read()<<" CONTEXTOUTFLAG: "<<contextOutFlag.read()<<endl;*/
-	 if(enabled.read() && writeFlag_vis.read() && !readContextFlag.read() && !readSingleFlag.read() && !finished.read())
+
+	 if(enabled.read() && writeFlag_res.read() && !readContextFlag.read() && !readSingleFlag.read() && !finished.read())
 	 {
-		 if(i.read()+1 == IMG_SIZE_i && j.read()+1 == IMG_SIZE_j)	{
+		 if(i_1.read()+1 == IMG_SIZE_i && j_1.read()+1 == IMG_SIZE_j)	{
 			cout<<endl;
 			finished.write(true);
 			cout<<"@" << sc_time_stamp()<<endl;
 		}
-		else if(j.read()+1 == IMG_SIZE_j)	{
-				i_vis.write(i.read()+1);
-				i.write(i.read()+1);
-				j_vis.write(0);
-				j.write(0);
-				writeFlag_vis.write(false);
-				cout<<endl; //COUT LINIA
+		else if(j_1.read()+1 == IMG_SIZE_j)	{
+				i_res.write(i_1.read()+1);
+				i_2.write(i_1.read()+1);
+				i_1.write(i_1.read()+1);
+				j_res.write(0);
+				j_2.write(0);
+				j_1.write(0);
+				writeFlag_res.write(false);
+				//cout<<endl; //COUT LINIA
 				readSingleFlag.write(true);
-				readSingleFlag_vis.write(true);
 		}
 		else	{
-				j_vis.write(j.read()+1);
-				j.write(j.read()+1);
-				writeFlag_vis.write(false);
+				j_res.write(j_1.read()+1);
+				j_2.write(j_1.read()+1);
+				j_1.write(j_1.read()+1);
+				writeFlag_res.write(false);
 				readSingleFlag.write(true);
-				readSingleFlag_vis.write(true);
 		}
-	 } else if(enabled.read() && !writeFlag_vis.read() && !readContextFlag.read() && !finished.read() && readSingleFlag.read() && singleOutFlag.read() && singleOutFlag_vis.read())	{
-		 if(!val_vis.read())	{	 
-			if(valSingle.read())	{
+	 } else if(enabled.read() && !writeFlag_res.read() && !readContextFlag.read() && !finished.read() && readSingleFlag.read() && singleOutFlag.read())	{ 
+			if(single.read())	{
 				 readSingleFlag.write(false);
-				 readSingleFlag_vis.write(false);
 				 readContextFlag.write(true);
 			 }
 			 else	{
 				 readSingleFlag.write(false);
-				 readSingleFlag_vis.write(false);
-				 dataOut_vis.write(false); //WYNIK
-				 cout<<0;
-				 writeFlag_vis.write(true);
+				 dataOut_res.write(false); //WYNIK
+				 writeFlag_res.write(true);
 			 }
-		}
-		else	{
-			//NASTÊPNY
-		}
 	 }
-	 else if(enabled.read() && !readSingleFlag.read() && !writeFlag_vis.read() && !finished.read() && readContextFlag.read() && contextOutFlag.read())	{
-		 if(!(context[0] & context[1] & context[2] & context[3] & context[4] & context[6] & context [7] & context [8] & context[9]))	{
-				 dataOut_vis.write(true); //WYNIK
-				 cout<<1;
+	 else if(enabled.read() && !readSingleFlag.read() && !writeFlag_res.read() && !finished.read() && readContextFlag.read() && contextOutFlag.read())	{
+		 if(!(context[0] & context[1] & context[2] & context[3] & context[4] & context[5] & context[6] & context [7]))	{
+				 dataOut_res.write(true); //WYNIK
 		 }
 		 else	{
-				 dataOut_vis.write(false); //WYNIK
-				 cout<<0;
+				 dataOut_res.write(false); //WYNIK
 		 }
 		 readContextFlag.write(false);
-		 writeFlag_vis.write(true);
+		 writeFlag_res.write(true);
 	 }
-	 else if(enabled.read() && !readContextFlag.read() && !readSingleFlag.read() && !readSingleFlag_vis.read() && !writeFlag_vis.read())	{
+	 else if(enabled.read() && !readContextFlag.read() && !readSingleFlag.read() && !writeFlag_res.read())	{
 		  cout<<"@" << sc_time_stamp()<<" "<< "START"<<endl;
 		  finished.write(false);
-		  i.write(0);
-		  j.write(0);
-		  i_vis.write(0);
-		  j_vis.write(0);
-		  writeFlag_vis.write(false);
+		  i_1.write(0);
+		  j_1.write(0);
+		  i_2.write(0);
+		  j_2.write(0);
+		  i_res.write(0);
+		  j_res.write(0);
+		  writeFlag_res.write(false);
 		  readContextFlag.write(false);
-		  readSingleFlag_vis.write(true);
 		  readSingleFlag.write(true);
 	 }
 	}
@@ -122,27 +107,17 @@ SC_MODULE(LinearModule)
 		}
 		else	{
 			enabled.write(true);
+			allowContextFlag.write(true);
 		}
   }
 
 				 
-  void testPrintout()	{
-	while(true)	{
-		wait();
-		cout<<"@" << sc_time_stamp()<<" "<<valSingle.read()<<endl;
-	}
-  }
-
-
-  SC_CTOR(LinearModule)
+  SC_CTOR(LinearModuleClassic)
   {
-	cnt = 0;
 	SC_CTHREAD(linearProcess, clock.pos());
 	
 	SC_METHOD(startStop);
 		dont_initialize();
 		sensitive<<enable.pos()<<finished.pos();
-
-	//SC_CTHREAD(test_printout, clock.pos());
   }
 };

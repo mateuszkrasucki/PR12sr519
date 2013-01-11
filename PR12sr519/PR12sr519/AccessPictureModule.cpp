@@ -21,12 +21,13 @@ SC_MODULE (AccessPictureModule) {
   sc_in    <sc_uint<COORD_WIDTH>>  i_2;
   sc_in   <sc_uint<COORD_WIDTH>> j_2;
   sc_in <bool> readContextFlag_2;
+  sc_in <bool> allowContextFlag;
 
   //wyjœcie
   sc_out<bool> singleOutFlag;
   sc_out <bool> dataOut;
   sc_out<bool> contextOutFlag;
-  sc_out <bool> context[9];
+  sc_out <bool> context[8];
 
   sc_uint<ADDR_WIDTH> tmp_address; 
   
@@ -48,7 +49,7 @@ SC_MODULE (AccessPictureModule) {
 					wait(1);
 					singleOutFlag.write(false);
 			}
-			else if (!readSingleFlag_1.read() && readContextFlag_2.read())
+			else if (!readSingleFlag_1.read() && readContextFlag_2.read() && allowContextFlag.read())
 			{
 						if(i_2.read()>0 && j_2.read()>0)	{
 							tmp_address = (i_2.read() - 1) * IMG_SIZE_j + (j_2.read() - 1);
@@ -91,15 +92,20 @@ SC_MODULE (AccessPictureModule) {
 						else	{
 							context[3].write(false);
 						}
-						tmp_address = (i_2.read()) * IMG_SIZE_j + (j_2.read());
-						address.write(tmp_address);
-						readMemFlag.write(true);
-						wait(2);
-
-						context[4].write(dataMemIn.read());
 
 						if(j_2.read()<IMG_SIZE_j-1)	{
 							tmp_address = (i_2.read()) * IMG_SIZE_j + (j_2.read() + 1);
+							address.write(tmp_address);
+							readMemFlag.write(true);
+							wait(2);
+							context[4].write(dataMemIn.read());
+						}
+						else	{
+							context[4].write(false);
+						}
+
+						if(i_2.read()<IMG_SIZE_i-1 && j_2.read()>0)	{
+							tmp_address = (i_2.read() + 1) * IMG_SIZE_j + (j_2.read() - 1);
 							address.write(tmp_address);
 							readMemFlag.write(true);
 							wait(2);
@@ -109,8 +115,8 @@ SC_MODULE (AccessPictureModule) {
 							context[5].write(false);
 						}
 
-						if(i_2.read()<IMG_SIZE_i-1 && j_2.read()>0)	{
-							tmp_address = (i_2.read() + 1) * IMG_SIZE_j + (j_2.read() - 1);
+						if(i_2.read()<IMG_SIZE_i-1)	{
+							tmp_address = (i_2.read() + 1) * IMG_SIZE_j + (j_2.read());
 							address.write(tmp_address);
 							readMemFlag.write(true);
 							wait(2);
@@ -120,28 +126,17 @@ SC_MODULE (AccessPictureModule) {
 							context[6].write(false);
 						}
 
-						if(i_2.read()<IMG_SIZE_i-1)	{
-							tmp_address = (i_2.read() + 1) * IMG_SIZE_j + (j_2.read());
-							address.write(tmp_address);
-							readMemFlag.write(true);
-							wait(2);
-							context[7].write(dataMemIn.read());
-						}
-						else	{
-							context[7].write(false);
-						}
-
 						if(i_2.read()<IMG_SIZE_i-1 && j_2.read()<IMG_SIZE_j-1)	{
 							tmp_address = (i_2.read() + 1) * IMG_SIZE_j + (j_2.read() + 1);
 							address.write(tmp_address);
 							readMemFlag.write(true);
 							wait(2);
-							context[8].write(dataMemIn.read());
+							context[7].write(dataMemIn.read());
 							contextOutFlag.write(true);
 							readMemFlag.write(false);
 						}
 						else	{
-							context[8].write(false);
+							context[7].write(false);
 							contextOutFlag.write(true);
 							readMemFlag.write(false);
 						}

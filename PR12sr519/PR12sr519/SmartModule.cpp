@@ -20,7 +20,7 @@ SC_MODULE(SmartModule)
 
    //wyniki AccessPictureModule
    sc_in <bool> contextOutFlag;
-   sc_in <bool> context[9];
+   sc_in <bool> context[8];
 
    //sterowanie VisitedModule
    sc_out <sc_uint<COORD_WIDTH>>  i_vis;
@@ -30,8 +30,9 @@ SC_MODULE(SmartModule)
    sc_out <bool>		dataOut_vis;
 
    //wyniki VisitedModule
+   sc_in<bool> contextVisitedFlag;
    sc_in <bool> contextOutFlag_vis;
-   sc_in <bool> context_vis[9];
+   sc_in <bool> context_vis[8];
 
    //sterowanie ResultsModule
    sc_out <sc_uint<COORD_WIDTH>>  i_res;
@@ -44,7 +45,6 @@ SC_MODULE(SmartModule)
 
    int iTmp;
    int jTmp;
-
    sc_signal<bool> enabled;
  
  void nextStep()	{
@@ -57,9 +57,6 @@ SC_MODULE(SmartModule)
 				j_vis.write(jTmp);
 				i_res.write(iTmp);
 				j_res.write(jTmp);
-
-				writeFlag_vis.write(false);
-				writeFlag_res.write(false);
 
 				readContextFlag.write(true);
 				readContextFlag_vis.write(true);
@@ -77,7 +74,7 @@ SC_MODULE(SmartModule)
 	while(true)	{
 		 wait();
 		 finished.write(false);
-		 if(enabled.read() && !writeFlag_vis.read() && !writeFlag_res.read() && !readContextFlag.read() && !readContextFlag_vis.read())	{
+		 if(enabled.read() && !writeFlag_vis.read() && !readContextFlag.read() && !readContextFlag_vis.read())	{
 			i.write(i_start.read());
 			j.write(j_start.read());
 			i_vis.write(i_start.read());
@@ -87,85 +84,142 @@ SC_MODULE(SmartModule)
 
 			readContextFlag.write(true);
 			readContextFlag_vis.write(true);
+
 			writeFlag_vis.write(false);
 			writeFlag_res.write(false);
 			dataOut_vis.write(false);
 			dataOut_res.write(false);
 		 } 
-		 else if(enabled.read() && writeFlag_vis.read() && writeFlag_res.read() && !readContextFlag.read() && !readContextFlag_vis.read())	{
-			nextStep();
+		 else if(enabled.read() && writeFlag_vis.read() && !readContextFlag.read() && !readContextFlag_vis.read())	{
+				writeFlag_vis.write(false);
+				writeFlag_res.write(false);
+				nextStep();
 		 }
-		 else if(enabled.read() && !writeFlag_vis.read() && !writeFlag_res.read() && readContextFlag.read() 
+		 else if(enabled.read() && !writeFlag_vis.read() && readContextFlag.read() && readContextFlag_vis.read() && contextVisitedFlag.read())	{
+					 readContextFlag.write(false);
+					 readContextFlag_vis.write(false);
+					 nextStep();
+		 }
+		 else if(enabled.read() && !writeFlag_vis.read() && readContextFlag.read() 
 			 && readContextFlag_vis.read() && contextOutFlag.read() && contextOutFlag_vis.read())	{
-
-			 cout<<iFifo.num_available()<<endl;
 
 			 readContextFlag.write(false);
 			 readContextFlag_vis.write(false);
-			 /*cout<<"@" << sc_time_stamp()<<" got context"<<" ";
-			 cout<<i.read()<<i_res.read()<<i_vis.read()<<"x"<<j.read()<<j_res.read()<<j_vis.read()<<endl;*/
 
-			 if(!context_vis[4])	{	
-				 //cout<<i.read()<<i_vis.read()<<"x"<<j.read()<<j_vis.read()<<endl;
-					 if(!(context[0].read() & context[1].read() & context[2].read() & context[3].read() & context[5].read() 
-						 & context[6].read() & context [7].read() & context [8].read()))	{
-							/*for(int i=0; i<9; i++)	{
-								cout<<"@" << sc_time_stamp()<<"context "<<i<<" "<<context[i].read()<<" visited? "<<context_vis[i].read()<<endl;
-							}*/
+					 if(!(context[0].read() & context[1].read() & context[2].read() & context[3].read() & context[4].read() 
+						 & context[5].read() & context [6].read() & context [7].read()))	{
+
 							if(context[0].read() & !context_vis[0].read())	{
-								//cout<<"ADD TO FIFO: "<<i.read()-1<<"x"<<j.read()-1<<endl;
 								iFifo.write(i.read()-1);
 								jFifo.write(j.read()-1);
+							} else if(!context_vis[0].read())	{
+								if(i.read()>0 && j.read() > 0)	{
+									i_vis.write(i.read()-1);
+									j_vis.write(j.read()-1);
+									dataOut_vis.write(true);
+									writeFlag_vis.write(true);
+									wait(1);
+									writeFlag_vis.write(false);
+								}
 							}
 							if(context[1].read() & !context_vis[1].read())	{
-								//cout<<"ADD TO FIFO: "<<i.read()-1<<"x"<<j.read()<<endl;
 								iFifo.write(i.read()-1);
 								jFifo.write(j.read());
+							} else if(!context_vis[1].read())	{
+								if(i.read()>0)	{
+									i_vis.write(i.read()-1);
+									j_vis.write(j.read());
+									dataOut_vis.write(true);
+									writeFlag_vis.write(true);
+									wait(1);
+									writeFlag_vis.write(false);
+								}
 							}
 							if(context[2].read() & !context_vis[2].read())	{
-								//cout<<"ADD TO FIFO: "<<i.read()-1<<"x"<<j.read()+1<<endl;
 								iFifo.write(i.read()-1);
 								jFifo.write(j.read()+1);
+							} else if(!context_vis[2].read())	{
+								if(i.read()>0 && j.read() < IMG_SIZE_j-1)	{
+									i_vis.write(i.read()-1);
+									j_vis.write(j.read()+1);
+									dataOut_vis.write(true);
+									writeFlag_vis.write(true);
+									wait(1);
+									writeFlag_vis.write(false);
+								}
 							}
 							if(context[3].read() & !context_vis[3].read())	{
-								//cout<<"ADD TO FIFO: "<<i.read()<<"x"<<j.read()-1<<endl;
 								iFifo.write(i.read());
 								jFifo.write(j.read()-1);
+							} else if(!context_vis[3].read())	{
+								if(j.read() > 0)	{
+									i_vis.write(i.read());
+									j_vis.write(j.read()-1);
+									dataOut_vis.write(true);
+									writeFlag_vis.write(true);
+									wait(1);
+									writeFlag_vis.write(false);
+								}
+							}
+							if(context[4].read() & !context_vis[4].read())	{
+								iFifo.write(i.read());
+								jFifo.write(j.read()+1);
+							} else if(!context_vis[4].read())	{
+								if(j.read() < IMG_SIZE_j-1)	{
+									i_vis.write(i.read());
+									j_vis.write(j.read()+1);
+									dataOut_vis.write(true);
+									writeFlag_vis.write(true);
+									wait(1);
+									writeFlag_vis.write(false);
+								}
 							}
 							if(context[5].read() & !context_vis[5].read())	{
-								//cout<<"ADD TO FIFO: "<<i.read()<<"x"<<j.read()+1<<endl;
-								iFifo.write(i.read());
-								jFifo.write(j.read()+1);
-							}
-							if(context[6].read() & !context_vis[6].read())	{
-								//cout<<"ADD TO FIFO: "<<i.read()+1<<"x"<<j.read()-1<<endl;
 								iFifo.write(i.read()+1);
 								jFifo.write(j.read()-1);
+							} else if(!context_vis[5].read())	{
+								if(i.read()<IMG_SIZE_i-1 && j.read() > 0)	{
+									i_vis.write(i.read()+1);
+									j_vis.write(j.read()-1);
+									dataOut_vis.write(true);
+									writeFlag_vis.write(true);
+									wait(1);
+									writeFlag_vis.write(false);
+								}
 							}
-							if(context[7].read() & !context_vis[7].read())	{
-								//cout<<"ADD TO FIFO: "<<i.read()+1<<"x"<<j.read()<<endl;
+							if(context[6].read() & !context_vis[6].read())	{
 								iFifo.write(i.read()+1);
 								jFifo.write(j.read());
+							} else if(!context_vis[6].read())	{
+								if(i.read()>IMG_SIZE_i-1)	{
+									i_vis.write(i.read()+1);
+									j_vis.write(j.read());
+									dataOut_vis.write(true);
+									writeFlag_vis.write(true);
+									wait(1);
+									writeFlag_vis.write(false);
+								}
 							}
-							if(context[8].read() & !context_vis[8].read())	{
-								//cout<<"ADD TO FIFO: "<<i.read()+1<<"x"<<j.read()+1<<endl;
-								//cout<<iFifo.num_available()<<" "<<iFifo.num_free()<<endl;
+							if(context[7].read() & !context_vis[7].read())	{
 								iFifo.write(i.read()+1);
 								jFifo.write(j.read()+1);
+							} else if(!context_vis[7].read())	{
+								if(i.read()>IMG_SIZE_i-1 && j.read() > IMG_SIZE_j-1)	{
+									i_vis.write(i.read()+1);
+									j_vis.write(j.read()+1);
+									dataOut_vis.write(true);
+									writeFlag_vis.write(true);
+									wait(1);
+									writeFlag_vis.write(false);
+								}
 							}
+							i_vis.write(i.read());
+							j_vis.write(j.read());
 							dataOut_res.write(true); 
 							writeFlag_res.write(true);
 					 }
-					 else	{
-						dataOut_res.write(false);
-					 }
 				dataOut_vis.write(true);
-				writeFlag_res.write(true);
 				writeFlag_vis.write(true);
-			 }
-			 else	{
-				nextStep();
-			 }
 		 }
 	 }
  }
@@ -192,7 +246,5 @@ SC_MODULE(SmartModule)
 	SC_METHOD(startStop);
 		dont_initialize();
 		sensitive<<enable.pos()<<finished.pos();
-
-	//SC_CTHREAD(test_printout, clock.pos());
   }
 };

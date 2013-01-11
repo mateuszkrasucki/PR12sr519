@@ -27,10 +27,14 @@ SC_MODULE (VisitedModule) {
   sc_in	   <bool>				  dataIn_2;
 
   //wyjœcie
-  sc_out<bool> singleOutFlag;
-  sc_out <bool> dataOut;
+  sc_out<bool> singleOutFlag_1;
+  sc_out <bool> single_1;
+
+  sc_out <bool> contextVisitedFlag;
   sc_out<bool> contextOutFlag;
-  sc_out <bool> context[9];
+  sc_out <bool> context[8];
+
+  sc_out<bool> allowContextFlag;
 
   sc_uint<ADDR_WIDTH> tmp_address; 
   
@@ -40,20 +44,34 @@ SC_MODULE (VisitedModule) {
 		writeMemFlag.write(false);
 			if (readSingleFlag_1.read() && !readContextFlag_2.read() && !writeFlag_1.read() && !writeFlag_2.read() )
 			{
-					singleOutFlag.write(false);
+					singleOutFlag_1.write(false);
 					readMemFlag.write(true);
 					tmp_address = i_1.read() * IMG_SIZE_j + j_1.read();
 					address.write(tmp_address);
 					wait(1);
 					readMemFlag.write(false);
 					wait(1);
-					dataOut.write(dataMemIn.read());
-					singleOutFlag.write(true);
+					single_1.write(dataMemIn.read());
+					singleOutFlag_1.write(true);
 					wait(1);
-					singleOutFlag.write(false);
+					singleOutFlag_1.write(false);
 			}
 			else if (!readSingleFlag_1.read() && readContextFlag_2.read() && !writeFlag_1.read() && !writeFlag_2.read() )
 			{
+					readMemFlag.write(true);
+					tmp_address = i_2.read() * IMG_SIZE_j + j_2.read();
+					address.write(tmp_address);
+					wait(1);
+					readMemFlag.write(false);
+					wait(1);
+					if(dataMemIn.read())	{
+						contextVisitedFlag.write(true);
+						wait(1);
+						contextVisitedFlag.write(false);
+					} else	{
+						allowContextFlag.write(true);
+						wait(1);
+						allowContextFlag.write(false);
 						if(i_2.read()>0 && j_2.read()>0)	{
 							tmp_address = (i_2.read() - 1) * IMG_SIZE_j + (j_2.read() - 1);
 							address.write(tmp_address);
@@ -95,15 +113,20 @@ SC_MODULE (VisitedModule) {
 						else	{
 							context[3].write(false);
 						}
-						tmp_address = (i_2.read()) * IMG_SIZE_j + (j_2.read());
-						address.write(tmp_address);
-						readMemFlag.write(true);
-						wait(2);
-
-						context[4].write(dataMemIn.read());
 
 						if(j_2.read()<IMG_SIZE_j-1)	{
 							tmp_address = (i_2.read()) * IMG_SIZE_j + (j_2.read() + 1);
+							address.write(tmp_address);
+							readMemFlag.write(true);
+							wait(2);
+							context[4].write(dataMemIn.read());
+						}
+						else	{
+							context[4].write(false);
+						}
+
+						if(i_2.read()<IMG_SIZE_i-1 && j_2.read()>0)	{
+							tmp_address = (i_2.read() + 1) * IMG_SIZE_j + (j_2.read() - 1);
 							address.write(tmp_address);
 							readMemFlag.write(true);
 							wait(2);
@@ -113,8 +136,8 @@ SC_MODULE (VisitedModule) {
 							context[5].write(false);
 						}
 
-						if(i_2.read()<IMG_SIZE_i-1 && j_2.read()>0)	{
-							tmp_address = (i_2.read() + 1) * IMG_SIZE_j + (j_2.read() - 1);
+						if(i_2.read()<IMG_SIZE_i-1)	{
+							tmp_address = (i_2.read() + 1) * IMG_SIZE_j + (j_2.read());
 							address.write(tmp_address);
 							readMemFlag.write(true);
 							wait(2);
@@ -124,38 +147,28 @@ SC_MODULE (VisitedModule) {
 							context[6].write(false);
 						}
 
-						if(i_2.read()<IMG_SIZE_i-1)	{
-							tmp_address = (i_2.read() + 1) * IMG_SIZE_j + (j_2.read());
-							address.write(tmp_address);
-							readMemFlag.write(true);
-							wait(2);
-							context[7].write(dataMemIn.read());
-						}
-						else	{
-							context[7].write(false);
-						}
-
 						if(i_2.read()<IMG_SIZE_i-1 && j_2.read()<IMG_SIZE_j-1)	{
 							tmp_address = (i_2.read() + 1) * IMG_SIZE_j + (j_2.read() + 1);
 							address.write(tmp_address);
 							readMemFlag.write(true);
 							wait(2);
-							context[8].write(dataMemIn.read());
+							context[7].write(dataMemIn.read());
 							contextOutFlag.write(true);
 							readMemFlag.write(false);
 						}
 						else	{
-							context[8].write(false);
+							context[7].write(false);
 							contextOutFlag.write(true);
 							readMemFlag.write(false);
 						}
 						wait(1);
 						contextOutFlag.write(false);
+					}
 			}
 			else if (!readSingleFlag_1.read() && !readContextFlag_2.read() && writeFlag_1.read() && !writeFlag_2.read() )
 			{
-					 address.write(i_2.read() * IMG_SIZE_j + j_2.read());
-					 dataMemOut.write(dataIn_2.read());
+					 address.write(i_1.read() * IMG_SIZE_j + j_1.read());
+					 dataMemOut.write(dataIn_1.read());
 					 writeMemFlag.write(true);
 			}
 			else if (!readSingleFlag_1.read() && !readContextFlag_2.read() && !writeFlag_1.read() && writeFlag_2.read() )

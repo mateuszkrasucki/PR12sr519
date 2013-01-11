@@ -18,7 +18,7 @@ SC_MODULE(LinearModule)
 
    //wyniki AccessPictureModule
    sc_in <bool> singleOutFlag;
-   sc_in <bool> valSingle;
+   sc_in <bool> single;
 
    //sterowanie VisitedModule
    sc_out <sc_uint<COORD_WIDTH>>  i_vis;
@@ -27,9 +27,9 @@ SC_MODULE(LinearModule)
    sc_out <bool>				 writeFlag_vis;
    sc_out <bool>		dataOut_vis;
 
-   //wyniki VisitedModule / VISITED
+   //wyniki VisitedModule 
    sc_in <bool> singleOutFlag_vis;
-   sc_in <bool> val_vis;
+   sc_in <bool> single_vis;
 
    //komunikacja ze SmartModule
    sc_out<bool> enableSmart;
@@ -48,20 +48,18 @@ SC_MODULE(LinearModule)
 			readSingleFlag_vis.write(false);
 			finished.write(true);
 		}
-		else if(j.read()+1 == IMG_SIZE_j)	{
+		else	{
+			if(j.read()+1 == IMG_SIZE_j)	{
 				i_vis.write(i.read()+1);
 				i.write(i.read()+1);
 
 				j_vis.write(0);
 				j.write(0);
-
-				writeFlag_vis.write(false);
-				readSingleFlag.write(true);
-				readSingleFlag_vis.write(true);
-		}
-		else	{
+			}
+			else	{
 				j_vis.write(j.read()+1);
 				j.write(j.read()+1);
+			}
 
 				writeFlag_vis.write(false);
 				readSingleFlag.write(true);
@@ -85,8 +83,8 @@ SC_MODULE(LinearModule)
 		 nextStep();
 	 } 
 	 else if(enabled.read() && !writeFlag_vis.read() && !finished.read() && readSingleFlag.read() && singleOutFlag.read() && singleOutFlag_vis.read())	{
-		 if(!val_vis.read())	{	 
-			if(valSingle.read())	{
+		 if(!single_vis.read())	{	 
+			if(single.read())	{
 				 readSingleFlag.write(false);
 				 readSingleFlag_vis.write(false);
 
