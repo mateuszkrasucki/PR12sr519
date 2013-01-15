@@ -117,21 +117,36 @@ SC_MODULE(Edges)
 		visitedMemory.displayMemory();
 		cout<<endl<<"RESULTS"<<endl;
 		resultsMemory.displayMemory();*/
+		//resultsMemory.displayMemory();
+
+		int* tablicaVisit;
+		int* tablicaResult;
+		tablicaVisit = new int[IMG_SIZE_i*IMG_SIZE_j];
+		tablicaResult = new int[IMG_SIZE_i*IMG_SIZE_j];
+		for(int i=0; i<IMG_SIZE_i*IMG_SIZE_j; i++)	{
+			tablicaVisit[i]=visitedMemory.getMem(i);
+			tablicaResult[i]=resultsMemory.getMem(i);
+		}
+
+		ImageGenerator *ig = new ImageGenerator();
+		string filenameVisit = sc_time_stamp().to_string();
+		string filenameResult = sc_time_stamp().to_string();
+		ig->generateBoth(tablicaVisit,tablicaResult,filenameVisit);
   }
 
   void displaying()	{
 	  while(true)	{
 		wait(1600);
 		if(displayFlag.read()==false)	{
-			//cout<<"STAN @" << sc_time_stamp()<<endl;
-			//display();
-			//cout<<endl;
+			cout<<"STAN @" << sc_time_stamp()<<endl;
+			display();
+			cout<<endl;
 		}
 	  }
   }
 
   void createImage() {
-	cout << "KONIEC PRZETWARZANIA. " << endl << "...ZAPISYWANIE OBRAZU..." << endl;
+	cout << "KONIEC PRZETWARZANIA. " << endl << "ZAPISYWANIE OBRAZU." << endl;
 	
 	int* tablica;
 	tablica = new int[IMG_SIZE_i*IMG_SIZE_j];
@@ -139,9 +154,9 @@ SC_MODULE(Edges)
 		tablica[i]=resultsMemory.getMem(i);
 	}
 	ImageGenerator *ig = new ImageGenerator();
-	ig->generate(tablica);
+	ig->generate(tablica, sc_time_stamp().to_string());
 
-	cout << "OBRAZ ZAPISANY..." << endl;
+	cout << "OBRAZ ZAPISANY." << endl;
   }
 
   void destroyMemory()	{

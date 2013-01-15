@@ -66,7 +66,7 @@ SC_MODULE (MemoryModule) {
 			j++;
 		}
 	}
-  
+
   }
 
   int getMem(int i)	{

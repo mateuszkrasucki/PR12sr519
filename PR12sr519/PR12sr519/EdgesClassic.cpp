@@ -97,7 +97,7 @@ SC_MODULE(EdgesLinear)
 		tablica[i]=resultsMemory.getMem(i);
 	}
 	ImageGenerator *ig = new ImageGenerator();
-	ig->generate(tablica);
+	ig->generate(tablica, "_end");
 
 	cout << "OBRAZ ZAPISANY..." << endl;
   }

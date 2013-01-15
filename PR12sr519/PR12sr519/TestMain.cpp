@@ -22,8 +22,8 @@ int sc_main (int argc, char* argv[]) {
   cin >> i;
   */
 
-  // 
-  
+  //
+	
   Edges test("Test");
   test.clock(clock);
   sc_start(150000,SC_NS);
