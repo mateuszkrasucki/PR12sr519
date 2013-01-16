@@ -8,6 +8,8 @@
 #include "SmartModule.cpp"
 #include "ImageGenerator.cpp"
 
+//name of image to be processed
+string const filename = IMAGE_NAME;
 
 SC_MODULE(Edges)
 {
@@ -131,7 +133,7 @@ SC_MODULE(Edges)
 		ImageGenerator *ig = new ImageGenerator();
 		string filenameVisit = sc_time_stamp().to_string();
 		string filenameResult = sc_time_stamp().to_string();
-		ig->generateBoth(tablicaVisit,tablicaResult,filenameVisit);
+		ig->generateBoth(tablicaVisit, tablicaResult, filenameVisit, filename);
   }
 
   void displaying()	{
@@ -301,15 +303,8 @@ SC_MODULE(Edges)
   linearModule.enable(enable);
   linearModule.finished(finished);
 
-  //sourceMemory.loadImage("../PR12sr519/TestImages/cross.png");
-  //sourceMemory.loadImage("../PR12sr519/TestImages/slash.png");
-  //sourceMemory.loadImage("../PR12sr519/TestImages/difficult.png");
-  //sourceMemory.loadImage("../PR12sr519/TestImages/nested.png");
-  //sourceMemory.loadImage("../PR12sr519/TestImages/kratownica.png");
-  //sourceMemory.loadImage("../PR12sr519/TestImages/punkty.png");
-  sourceMemory.loadImage("../PR12sr519/TestImages/almostfull.png");
-  //sourceMemory.loadImage("../PR12sr519/TestImages/100.png");
-  //sourceMemory.loadImage("../PR12sr519/TestImages/2028.png");
+  sourceMemory.loadImage(filename.c_str());
+
   resultsMemory.initMemory();
   visitedMemory.initMemory();
 

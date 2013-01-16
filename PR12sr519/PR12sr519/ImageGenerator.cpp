@@ -49,7 +49,7 @@ public:
 		return 0;
 	}
 
-	int generateBoth(int *tab, int *tab2, string id) {
+	int generateBoth(int *tab, int *tab2, string id, string input) {
 		tablica = tab;
 
 		/*creating image*/
@@ -89,11 +89,12 @@ public:
 
 		IplImage *img1a = cvLoadImage(filename.c_str());
 		IplImage *img2b = cvLoadImage(filename2.c_str());
+		IplImage *img2c = cvLoadImage(input.c_str());
 		const char* file = filename_output.c_str();
 
 		char *cstr = new char[filename_output.length() + 1];
 		strcpy(cstr, filename_output.c_str());
-		cvShowManyImages(cstr, 2, img1a, img2b);
+		cvShowManyImages(cstr, 3, img1a, img2b, img2c);
 		delete [] cstr;
 
 		return 0;
@@ -137,7 +138,7 @@ public:
 			size = 300;
 		}
 		else if (nArgs == 3 || nArgs == 4) {
-			w = 2; h = 2;
+			w = 3; h = 1;
 			size = 300;
 		}
 		else if (nArgs == 5 || nArgs == 6) {
