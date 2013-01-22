@@ -238,7 +238,7 @@ SC_MODULE(SmartModule)
 				 
 
 
-  SC_CTOR(SmartModule) : iFifo(100), jFifo(100)
+  SC_CTOR(SmartModule) : iFifo(FIFO_SIZE), jFifo(FIFO_SIZE)
   {
 
 	SC_CTHREAD(smartProcess, clock.pos());
